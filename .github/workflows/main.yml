@@ -1,0 +1,47 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release WordPress Plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer
+
+      - name: Install Composer Dependencies
+        run: |
+          if [ -f "composer.json" ]; then
+            composer install --no-dev --optimize-autoloader --no-interaction
+          fi
+
+      - name: Create Plugin ZIP Package
+        run: |
+          mkdir -p build/kommo-client-manager
+          rsync -rc --exclude-from='.gitignore' --exclude='.git' --exclude='.github' --exclude='build' ./ build/kommo-client-manager/
+          cd build
+          zip -r ../kommo-client-manager.zip kommo-client-manager/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: kommo-client-manager.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
