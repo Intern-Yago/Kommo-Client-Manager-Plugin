@@ -7,7 +7,9 @@ if (!defined('ABSPATH')) {
 if (!function_exists('kcm_log')) {
     function kcm_log(string $message, array $context = [], string $level = 'info'): void
     {
-        \KCM\Services\LogService::$level($message, $context);
+        $allowedLevels = ['info', 'warning', 'error', 'debug'];
+        $method = in_array(strtolower($level), $allowedLevels, true) ? strtolower($level) : 'info';
+        \KCM\Services\LogService::$method($message, $context);
     }
 }
 

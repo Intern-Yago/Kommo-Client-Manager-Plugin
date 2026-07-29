@@ -12,6 +12,10 @@ class Logs
 {
     public function render(): void
     {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Acesso negado. Permissão insuficiente.', 'kommo-client-manager'));
+        }
+
         if (isset($_POST['kcm_clear_logs']) && check_admin_referer('kcm_clear_logs_nonce')) {
             Log::clearLogs();
             echo '<div class="notice notice-success is-dismissible kcm-notice"><p>Logs do sistema limpados com sucesso.</p></div>';

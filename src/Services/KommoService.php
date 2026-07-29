@@ -20,10 +20,10 @@ class KommoService
     public static function parseContactData(array $contact): array
     {
         $kommo_id = (int) ($contact['id'] ?? 0);
-        $name     = trim($contact['name'] ?? '');
+        $name     = sanitize_text_field(trim($contact['name'] ?? ''));
         $email    = '';
         $phone    = '';
-        $company  = '';
+        $company  = sanitize_text_field(trim($contact['company']['name'] ?? ''));
 
         if (!empty($contact['custom_fields_values']) && is_array($contact['custom_fields_values'])) {
             foreach ($contact['custom_fields_values'] as $field) {
@@ -31,9 +31,9 @@ class KommoService
                 $values = $field['values'] ?? [];
 
                 if ($code === 'EMAIL' && !empty($values[0]['value'])) {
-                    $email = trim($values[0]['value']);
+                    $email = sanitize_email(trim($values[0]['value']));
                 } elseif ($code === 'PHONE' && !empty($values[0]['value'])) {
-                    $phone = trim($values[0]['value']);
+                    $phone = sanitize_text_field(trim($values[0]['value']));
                 }
             }
         }
@@ -51,6 +51,10 @@ class KommoService
     public static function handleWebhook(\WP_REST_Request $request): \WP_REST_Response
     {
         $params = $request->get_params();
+
+        if (empty($params) || !is_array($params)) {
+            return new \WP_REST_Response(['status' => 'error', 'message' => 'Payload inválido'], 400);
+        }
 
         LogService::info('Webhook recebido do Kommo', ['params' => $params]);
 

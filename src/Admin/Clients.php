@@ -12,9 +12,14 @@ class Clients
 {
     public function render(): void
     {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Acesso negado. Permissão insuficiente.', 'kommo-client-manager'));
+        }
+
         if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id']) && isset($_GET['_wpnonce'])) {
-            if (wp_verify_nonce($_GET['_wpnonce'], 'kcm_delete_client_' . $_GET['id'])) {
-                Client::delete((int) $_GET['id']);
+            $clientId = (int) $_GET['id'];
+            if (wp_verify_nonce($_GET['_wpnonce'], 'kcm_delete_client_' . $clientId)) {
+                Client::delete($clientId);
                 echo '<div class="notice notice-success is-dismissible kcm-notice"><p>Cliente removido com sucesso.</p></div>';
             }
         }

@@ -13,6 +13,10 @@ class Sync
 {
     public function render(): void
     {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Acesso negado. Permissão insuficiente.', 'kommo-client-manager'));
+        }
+
         $syncResult = null;
 
         if (isset($_POST['kcm_do_sync']) && check_admin_referer('kcm_manual_sync_nonce')) {

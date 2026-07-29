@@ -15,6 +15,10 @@ class Dashboard
 {
     public function render(): void
     {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Acesso negado. Permissão insuficiente.', 'kommo-client-manager'));
+        }
+
         $totalClients  = Client::countClients();
         $lastSyncTime  = get_option('kcm_last_sync_time', 'Nunca');
         $lastSyncCount = get_option('kcm_last_sync_count', 0);

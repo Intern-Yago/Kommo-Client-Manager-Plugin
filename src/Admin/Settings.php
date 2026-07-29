@@ -14,6 +14,10 @@ class Settings
 {
     public function render(): void
     {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Acesso negado. Permissão insuficiente.', 'kommo-client-manager'));
+        }
+
         $message = null;
         $messageType = 'updated';
 
