@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kommo Client Manager - Página de Integração e Documentação</title>
+  <meta name="description" content="Página de redirecionamento OAuth e Documentação Oficial do plugin Kommo Client Manager para WordPress.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              accent: '#f97316',
+              cyan: '#06b6d4',
+              dark: '#0b0f19',
+              card: '#151d30',
+              border: '#2a364f',
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            glow: {
+              '0%': { boxShadow: '0 0 15px rgba(59, 130, 246, 0.3)' },
+              '100%': { boxShadow: '0 0 30px rgba(59, 130, 246, 0.7)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(249, 115, 22, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    
+    .glass-card {
+      background: rgba(21, 29, 48, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.15);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #f97316 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-border {
+      position: relative;
+    }
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 1rem;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(249, 115, 22, 0.4));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased selection:bg-brand-500 selection:text-white min-h-screen flex flex-col justify-between">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="flex items-center gap-3 bg-emerald-500 text-white px-5 py-3.5 rounded-xl shadow-2xl font-semibold border border-emerald-400/40">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span id="toast-message">Copiado com sucesso!</span>
+    </div>
+  </div>
+
+  <!-- Header / Nav -->
+  <header class="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-brand-accent p-0.5 shadow-lg shadow-brand-500/20">
+          <div class="w-full h-full bg-brand-dark rounded-[10px] flex items-center justify-center">
+            <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
+            Kommo <span class="text-brand-500">Client Manager</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20">v1.0</span>
+          </span>
+          <p class="text-xs text-slate-400">Integração WordPress & Kommo CRM</p>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <a href="#oauth-section" class="hover:text-brand-500 transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          OAuth Status
+        </a>
+        <a href="#quickstart" class="hover:text-brand-500 transition-colors">Guia de Instalação</a>
+        <a href="#features" class="hover:text-brand-500 transition-colors">Recursos</a>
+        <a href="#webhooks" class="hover:text-brand-500 transition-colors">Webhooks</a>
+        <a href="#faq" class="hover:text-brand-500 transition-colors">FAQ</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/intern-yago/Kommo-Client-Manager-Plugin" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-medium text-sm transition-all border border-slate-700/60 shadow-sm">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16 flex-grow">
+
+    <!-- Hero Section -->
+    <section class="text-center py-8 space-y-6 relative">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-500 font-semibold text-xs uppercase tracking-wider mb-2">
+        <span class="w-2 h-2 rounded-full bg-brand-500 animate-ping"></span>
+        Documentação Oficial & Plugin Hub
+      </div>
+      <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight max-w-4xl mx-auto leading-tight">
+        Conecte o <span class="gradient-text">Kommo CRM</span> ao seu WordPress com Perfeição
+      </h1>
+      <p class="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto font-normal leading-relaxed">
+        Automatize a criação de usuários, sincronize contatos em tempo real e gerencie o fluxo de acesso dos seus clientes diretamente no WordPress.
+      </p>
+
+      <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+        <a href="#oauth-section" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-brand-600/30 transition-all flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          Verificar Código OAuth
+        </a>
+        <a href="#quickstart" class="px-6 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 text-slate-200 font-semibold text-sm border border-slate-700 transition-all flex items-center gap-2">
+          <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Guia Passo a Passo
+        </a>
+      </div>
+    </section>
+
+    <!-- Dynamic OAuth Authorization Code Banner -->
+    <section id="oauth-section" class="scroll-mt-24">
+      <div id="oauth-detected-box" class="hidden gradient-border glass-card p-6 sm:p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/30 uppercase tracking-wide">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Código Capturado com Sucesso!
+            </div>
+            <h2 class="text-2xl font-bold text-white">Código de Autorização do Kommo Detectado</h2>
+            <p class="text-slate-300 text-sm max-w-xl">
+              Copie o código abaixo e cole no painel do WordPress em: <br>
+              <strong class="text-brand-500 font-mono">Painel WP &rarr; Kommo Manager &rarr; Configurações &rarr; Código de Autorização</strong>
+            </p>
+          </div>
+
+          <div class="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div class="bg-slate-950/80 px-5 py-3.5 rounded-xl border border-slate-800 font-mono text-emerald-400 font-bold text-lg select-all tracking-wider text-center break-all shadow-inner" id="code-display">
+              --
+            </div>
+            <button onclick="copyOAuthCode()" class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              Copiar Código
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-400">
+          <div><span class="text-slate-500">Subdomínio/Referer:</span> <strong id="referer-display" class="text-slate-300 font-mono">--</strong></div>
+          <div><span class="text-slate-500">Client ID:</span> <strong id="client-id-display" class="text-slate-300 font-mono">--</strong></div>
+          <div><span class="text-slate-500">Validade do Código:</span> <strong class="text-amber-400">20 minutos (Kommo Limit)</strong></div>
+        </div>
+      </div>
+
+      <!-- Default OAuth Standby Box when no code is present -->
+      <div id="oauth-standby-box" class="glass-card p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-800 relative">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 text-brand-500 text-xs font-bold border border-brand-500/20 uppercase tracking-wide">
+              <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Página de Redirecionamento Pronta
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-white">OAuth Redirect URI Ativo</h2>
+            <p class="text-slate-400 text-sm max-w-2xl">
+              Esta página é a URL oficial configurada no Kommo CRM para receber redirecionamentos de autorização. Quando você clica em autorizar no Kommo, ele envia o <code class="text-brand-500 font-mono">code</code> diretamente para esta página.
+            </p>
+          </div>
+
+          <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80 w-full sm:w-80 text-xs font-mono space-y-2">
+            <div class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Copie esta URL para o painel do Kommo</div>
+            <div class="text-slate-300 break-all select-all flex items-center justify-between gap-2">
+              <span id="current-url" class="truncate">https://intern-yago.github.io/Kommo-Client-Manager-Plugin/</span>
+              <button onclick="copyToClipboard('https://intern-yago.github.io/Kommo-Client-Manager-Plugin/')" class="text-brand-500 hover:text-brand-400 font-sans text-xs">Copiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start Step-by-Step Guide -->
+    <section id="quickstart" class="scroll-mt-24 space-y-8">
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl font-bold text-white tracking-tight">Guia Rápido de Configuração</h2>
+        <p class="text-slate-400 text-sm">Siga os 5 passos abaixo para conectar o Kommo ao WordPress em menos de 3 minutos</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Step 1 -->
+        <div class="glass-card p-6 rounded-2xl glass-card-hover space-y-4 relative">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 rounded-xl bg-brand-500/10 text-brand-500 border border-brand-500/20 flex items-center justify-center font-bold text-sm">01</span>
+            <span class="text-xs text-slate-500 uppercase font-semibold">Kommo CRM</span>
+          </div>
+          <h3 class="text-lg font-bold text-white">Criar Integração Privada</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            No painel do Kommo, acesse <strong>Configurações &rarr; Integrações &rarr; Criar Integração</strong>. Preencha o nome e selecione as permissões necessárias para Contatos e Leads.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="glass-card p-6 rounded-2xl glass-card-hover space-y-4 relative">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold text-sm">02</span>
+            <span class="text-xs text-slate-500 uppercase font-semibold">Redirect URI</span>
+          </div>
+          <h3 class="text-lg font-bold text-white">Definir Redirect URI</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            No campo <strong>Redirect URI</strong> da sua integração no Kommo, informe exatamente esta URL:
+          </p>
+          <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-brand-400 flex items-center justify-between">
+            <span class="truncate">https://intern-yago.github.io/Kommo-Client-Manager-Plugin/</span>
+            <button onclick="copyToClipboard('https://intern-yago.github.io/Kommo-Client-Manager-Plugin/')" class="text-slate-400 hover:text-white ml-2">📋</button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="glass-card p-6 rounded-2xl glass-card-hover space-y-4 relative">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 rounded-xl bg-brand-accent/10 text-brand-accent border border-brand-accent/20 flex items-center justify-center font-bold text-sm">03</span>
+            <span class="text-xs text-slate-500 uppercase font-semibold">WordPress</span>
+          </div>
+          <h3 class="text-lg font-bold text-white">Instalar o Plugin</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Baixe o arquivo ZIP da release no GitHub, acesse <strong>WordPress &rarr; Plugins &rarr; Adicionar Novo &rarr; Enviar Plugin</strong> e clique em <strong>Ativar</strong>.
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="glass-card p-6 rounded-2xl glass-card-hover space-y-4 relative">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold text-sm">04</span>
+            <span class="text-xs text-slate-500 uppercase font-semibold">Autenticação</span>
+          </div>
+          <h3 class="text-lg font-bold text-white">Informar Credenciais</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            No WordPress, vá em <strong>Kommo Manager &rarr; Configurações</strong>. Digite o <strong>Subdomínio</strong>, <strong>Client ID</strong> e <strong>Client Secret</strong>. Em seguida insira o Código de Autorização.
+          </p>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="glass-card p-6 rounded-2xl glass-card-hover space-y-4 relative">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center font-bold text-sm">05</span>
+            <span class="text-xs text-slate-500 uppercase font-semibold">Automação</span>
+          </div>
+          <h3 class="text-lg font-bold text-white">Configurar Webhook</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Configure um Webhook na etapa de funil desejada (ex: <em>Cliente com consulta</em>) direcionado para o endpoint do plugin no seu WordPress para sincronização automática.
+          </p>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="glass-card p-6 rounded-2xl glass-card-hover space-y-4 relative bg-gradient-to-br from-brand-card to-slate-900">
+          <div class="flex items-center justify-between">
+            <span class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold text-sm">06</span>
+            <span class="text-xs text-emerald-400 font-bold uppercase tracking-wider">Pronto!</span>
+          </div>
+          <h3 class="text-lg font-bold text-white">Pronto para Operar</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Seus clientes Kommo agora serão sincronizados e terão contas de usuário criadas com envio automático de e-mail de definição de senha.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Plugin Features Showcase -->
+    <section id="features" class="scroll-mt-24 space-y-8">
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl font-bold text-white tracking-tight">Recursos Principais do Plugin</h2>
+        <p class="text-slate-400 text-sm">Arquitetura robusta projetada para alto desempenho e segurança</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-slate-800">
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">Criação Automática de Usuários</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Cria contas de usuário WordPress automaticamente com perfil personalizado (ex: Assinante) assim que um cliente atinge a etapa configurada no Kommo.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-slate-800">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">Sincronização Manual & Agendada</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Execute sincronizações manuais em lote a qualquer momento ou deixe a rotina WP-Cron horária manter os dados atualizados.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-slate-800">
+          <div class="w-12 h-12 rounded-xl bg-brand-accent/10 text-brand-accent flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">E-mails de Boas-Vindas & Acesso</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Envia e-mails formatados contendo links seguros para criação de senha no primeiro acesso e recuperação quando necessário.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-slate-800">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">Renovação de Token OAuth 2.0</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Gestão automática de Refresh Tokens. O plugin atualiza a chave de acesso antes de expirar sem interromper os serviços.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-slate-800">
+          <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">Sistema Completo de Logs</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Registro detalhado de webhooks recebidos, erros de API, criações de usuários e status de requisições diretamente no WordPress.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3 border border-slate-800">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">Segurança WP REST API</h3>
+          <p class="text-slate-400 text-xs leading-relaxed">
+            Endpoints seguros protegidos por escopo e sanitização rigorosa de entradas de dados para prevenção de vulnerabilidades.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Webhook & API Specification Section -->
+    <section id="webhooks" class="scroll-mt-24 space-y-8">
+      <div class="glass-card p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+          <div>
+            <div class="inline-flex items-center gap-2 text-xs font-mono text-cyan-400 uppercase tracking-wider mb-1">REST API Webhook Endpoint</div>
+            <h2 class="text-2xl font-bold text-white">Documentação do Webhook Kommo</h2>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300">
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">POST</span>
+            <code>/wp-json/kcm/v1/webhook</code>
+          </div>
+        </div>
+
+        <p class="text-slate-400 text-sm">
+          Cadastre a URL do seu site WordPress no painel de webhooks do Kommo para disparar a sincronização em tempo real quando contatos forem adicionados ou atualizados:
+        </p>
+
+        <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+          <div class="flex items-center justify-between px-4 py-3 bg-slate-900/80 border-b border-slate-800 text-xs font-mono text-slate-400">
+            <span>Exemplo de Payload Enviado pelo Kommo</span>
+            <button onclick="copyToClipboard(document.getElementById('webhook-code').innerText)" class="text-brand-500 hover:text-brand-400 text-xs font-sans">Copiar JSON</button>
+          </div>
+          <pre class="p-4 text-xs font-mono text-slate-300 overflow-x-auto" id="webhook-code">{
+  "contacts": {
+    "add": [
+      {
+        "id": 12345678,
+        "name": "Maria Silva",
+        "custom_fields_values": [
+          { "field_code": "EMAIL", "values": [{ "value": "maria.silva@exemplo.com" }] },
+          { "field_code": "PHONE", "values": [{ "value": "+5511999998888" }] }
+        ]
+      }
+    ]
+  }
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="scroll-mt-24 space-y-8">
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl font-bold text-white tracking-tight">Perguntas Frequentes (FAQ)</h2>
+        <p class="text-slate-400 text-sm">Dúvidas comuns sobre a integração e redirecionamento OAuth</p>
+      </div>
+
+      <div class="max-w-3xl mx-auto space-y-4">
+        
+        <details class="glass-card rounded-xl p-5 border border-slate-800 group transition-all">
+          <summary class="font-semibold text-white cursor-pointer list-none flex items-center justify-between">
+            <span>O que fazer se o Código de Autorização expirar?</span>
+            <span class="transition group-open:rotate-180 text-brand-500">&darr;</span>
+          </summary>
+          <p class="text-slate-400 text-xs mt-3 leading-relaxed">
+            Os códigos de autorização do Kommo duram exatamente 20 minutos. Se expirar, basta abrir novamente a integração no Kommo, clicar para autorizar e gerar um novo código para colar no WordPress.
+          </p>
+        </details>
+
+        <details class="glass-card rounded-xl p-5 border border-slate-800 group transition-all">
+          <summary class="font-semibold text-white cursor-pointer list-none flex items-center justify-between">
+            <span>Como o plugin lida com a renovação do Token de Acesso?</span>
+            <span class="transition group-open:rotate-180 text-brand-500">&darr;</span>
+          </summary>
+          <p class="text-slate-400 text-xs mt-3 leading-relaxed">
+            Uma vez realizada a primeira troca com o Código de Autorização, o plugin salva um Refresh Token e renova os acessos de forma automática antes que o Access Token de 24 horas expire.
+          </p>
+        </details>
+
+        <details class="glass-card rounded-xl p-5 border border-slate-800 group transition-all">
+          <summary class="font-semibold text-white cursor-pointer list-none flex items-center justify-between">
+            <span>Por que usar esta página no GitHub Pages como Redirect URI?</span>
+            <span class="transition group-open:rotate-180 text-brand-500">&darr;</span>
+          </summary>
+          <p class="text-slate-400 text-xs mt-3 leading-relaxed">
+            Esta página serve como um hub central seguro e independente para capturar o código de autorização durante o processo de configuração inicial da integração privada do Kommo, facilitando a cópia sem depender de configurações complexas de SSL em ambientes de teste.
+          </p>
+        </details>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950/60 py-8 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 space-y-3">
+      <p>Kommo Client Manager Plugin &copy; 2026. Desenvolvido por <strong class="text-slate-300">Yago</strong>.</p>
+      <div class="flex items-center justify-center gap-4 text-slate-400">
+        <a href="https://github.com/intern-yago/Kommo-Client-Manager-Plugin" target="_blank" class="hover:text-brand-500 transition-colors">Repositório GitHub</a>
+        <span>&bull;</span>
+        <a href="https://github.com/intern-yago/Kommo-Client-Manager-Plugin/blob/main/LICENSE" target="_blank" class="hover:text-brand-500 transition-colors">Licença MIT</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script for URL Parsing and Copying -->
+  <script>
+    // Extract query parameters from URL
+    function getQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        code: params.get('code'),
+        referer: params.get('referer'),
+        client_id: params.get('client_id') || params.get('state'),
+        platform: params.get('platform')
+      };
+    }
+
+    // Initialize page on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = getQueryParams();
+      
+      if (params.code) {
+        // Show detected code box
+        const detectedBox = document.getElementById('oauth-detected-box');
+        const standbyBox = document.getElementById('oauth-standby-box');
+        
+        document.getElementById('code-display').innerText = params.code;
+        document.getElementById('referer-display').innerText = params.referer || 'N/A';
+        document.getElementById('client-id-display').innerText = params.client_id || 'N/A';
+        
+        detectedBox.classList.remove('hidden');
+        standbyBox.classList.add('hidden');
+        
+        // Auto scroll to detected box
+        setTimeout(() => {
+          detectedBox.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }
+    });
+
+    // Copy OAuth code
+    function copyOAuthCode() {
+      const params = getQueryParams();
+      if (params.code) {
+        copyToClipboard(params.code, 'Código de Autorização copiado para a área de transferência!');
+      } else {
+        const text = document.getElementById('code-display').innerText;
+        copyToClipboard(text, 'Copiado para a área de transferência!');
+      }
+    }
+
+    // Generic copy to clipboard function
+    function copyToClipboard(text, customMessage) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(customMessage || 'Copiado com sucesso!');
+      }).catch(err => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(customMessage || 'Copiado com sucesso!');
+      });
+    }
+
+    // Show toast message
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.innerText = message;
+      
+      toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-[-100px]', 'opacity-0');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

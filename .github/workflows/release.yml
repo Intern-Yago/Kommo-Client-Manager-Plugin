@@ -32,7 +32,7 @@ jobs:
       - name: Create Plugin ZIP Package
         run: |
           mkdir -p build/kommo-client-manager
-          rsync -rc --exclude-from='.gitignore' --exclude='.git' --exclude='.github' --exclude='build' ./ build/kommo-client-manager/
+          rsync -rc --exclude='.git*' --exclude='.github' --exclude='build' ./ build/kommo-client-manager/
           cd build
           zip -r ../kommo-client-manager.zip kommo-client-manager/
 
