@@ -7,6 +7,21 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [1.1.0] - 2026-07-29
+
+### 🚀 Adicionado
+- **Página de Documentação & OAuth Hub (GitHub Pages)**: Criação de site interativo e responsivo em `https://intern-yago.github.io/Kommo-Client-Manager-Plugin/` com design dark/glassmorphism, leitor automático de `Authorization Code` com cópia em 1 clique, tutorial de instalação e especificação de API/Webhooks.
+- **Automação de Deploy do GitHub Pages**: Workflow de CI/CD (`deploy-pages.yml`) para publicação automática do site de documentação a cada `push` na branch `main`.
+- **Empacotamento Automatizado de Release**: Ajuste no workflow `release.yml` para inclusão correta do diretório `vendor/` (dependências do Composer) nos arquivos ZIP de release gerados no GitHub Releases.
+
+### 🛡️ Segurança & Hardening
+- **Checagem Estrita de Permissões**: Adicionadas verificações `current_user_can('manage_options')` em todas as telas administrativas (`Clients`, `Dashboard`, `Logs`, `Settings`, `Sync`).
+- **Sanitização de Dados**: Aplicação de `sanitize_text_field()` e `sanitize_email()` no manipulador de webhooks e conversor de contatos do Kommo CRM.
+- **Validação de Payload Webhook**: Rejeição automática de requisições REST com payloads vazios ou malformatados.
+- **Proteção contra Injeções de Código**: Validação estrita de parâmetros dinâmicos em helpers de log e métodos de formulários administrativos.
+
+---
+
 ## [1.0.0] - 2026-07-29
 
 ### 🚀 Adicionado
@@ -22,16 +37,4 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - **Sincronização**: Gatilho de sincronização manual e caixa com a URL do Webhook com botão de cópia.
   - **Logs**: Tabela de auditoria do sistema com filtros por nível (`info`, `warning`, `error`) e limpeza de registros.
   - **Configurações**: Gerenciamento de credenciais da API, troca do Código de Autorização OAuth e teste de conexão.
-- **Isolamento de Interface**: Ocultação de notificações de terceiros (manageWP, GDPR, Dynamic.ooo, etc.) em todas as telas do plugin para evitar quebras visuais no cabeçalho.
-
----
-
-## [Planejado]
-
-### 1.1.0
-- Barra de progresso para sincronizações extensas.
-- Mapeamento avançado de campos personalizados do Kommo para Meta Data do WordPress.
-
-### 2.0.0
-- Suporte a múltiplos pipelines e etapas de funil.
-- Notificações de eventos via WhatsApp/Webhooks de saída.
+- **Isolamento de Interface**: Ocultação de notificações de terceiros em todas as telas do plugin.

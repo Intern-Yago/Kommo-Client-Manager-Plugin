@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Kommo Client Manager
  * Description: Integração entre Kommo CRM e WordPress.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Yago
  * License: GPL-2.0-or-later
  * Text Domain: kommo-client-manager
@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('KCM_VERSION', '1.0.0');
+define('KCM_VERSION', '1.1.0');
 define('KCM_PATH', plugin_dir_path(__FILE__));
 define('KCM_URL', plugin_dir_url(__FILE__));
 
