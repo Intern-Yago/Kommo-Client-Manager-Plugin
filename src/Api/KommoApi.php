@@ -29,9 +29,13 @@ class KommoApi
         $redirectUri  = trim((string) SettingsService::get('redirect_uri', ''));
         $code         = trim($code);
 
+        if (empty($clientId) || empty($clientSecret)) {
+            return ['success' => false, 'message' => 'Client ID ou Client Secret ausentes nas configurações.'];
+        }
+
         $url = $this->baseUrl . '/oauth2/access_token';
 
-        $body = [
+        $bodyData = [
             'client_id'     => $clientId,
             'client_secret' => $clientSecret,
             'grant_type'    => 'authorization_code',
@@ -39,28 +43,55 @@ class KommoApi
             'redirect_uri'  => $redirectUri,
         ];
 
+        // 1. Try application/json request
         $response = wp_remote_post($url, [
-            'headers' => ['Content-Type' => 'application/json'],
-            'body'    => wp_json_encode($body),
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
+            ],
+            'body'    => wp_json_encode($bodyData),
             'timeout' => 30,
         ]);
 
-        if (is_wp_error($response)) {
-            $msg = $response->get_error_message();
-            LogService::error('Erro ao trocar Auth Code no Kommo', ['error' => $msg]);
-            return ['success' => false, 'message' => $msg];
-        }
+        $statusCode = is_wp_error($response) ? 0 : wp_remote_retrieve_response_code($response);
+        $rawBody    = is_wp_error($response) ? '' : wp_remote_retrieve_body($response);
+        $data       = json_decode($rawBody, true) ?: [];
 
-        $statusCode = wp_remote_retrieve_response_code($response);
-        $data = json_decode(wp_remote_retrieve_body($response), true);
-
+        // 2. If JSON request failed or returned 400, fallback to application/x-www-form-urlencoded
         if ($statusCode !== 200 || empty($data['access_token'])) {
-            $errorMsg = $data['detail'] ?? $data['title'] ?? 'Falha na autenticação com Kommo.';
-            if (strpos($errorMsg, 'missing a required parameter') !== false || strpos($errorMsg, 'invalid parameter') !== false) {
-                $errorMsg .= ' -> O Código de Autorização expirou ou já foi utilizado. Gere um NOVO Código no painel do Kommo e confirme se o Redirect URI é exatamente idêntico.';
+            $fallbackResponse = wp_remote_post($url, [
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Accept'       => 'application/json',
+                ],
+                'body'    => http_build_query($bodyData),
+                'timeout' => 30,
+            ]);
+
+            $fbStatus = is_wp_error($fallbackResponse) ? 0 : wp_remote_retrieve_response_code($fallbackResponse);
+            $fbRaw    = is_wp_error($fallbackResponse) ? '' : wp_remote_retrieve_body($fallbackResponse);
+            $fbData   = json_decode($fbRaw, true) ?: [];
+
+            if ($fbStatus === 200 && !empty($fbData['access_token'])) {
+                $statusCode = $fbStatus;
+                $data       = $fbData;
+            } else {
+                LogService::error('Falha na resposta do token Kommo', [
+                    'target_url'         => $url,
+                    'redirect_uri_sent'  => $redirectUri,
+                    'client_id_sent'     => $clientId,
+                    'json_status'        => $statusCode,
+                    'json_response'      => $data,
+                    'urlencoded_status'  => $fbStatus,
+                    'urlencoded_response'=> $fbData,
+                ]);
+
+                $errorDetail = $data['detail'] ?? $fbData['detail'] ?? $data['title'] ?? $fbData['title'] ?? 'Falha na autenticação com Kommo.';
+                if (strpos($errorDetail, 'missing a required parameter') !== false || strpos($errorDetail, 'invalid parameter') !== false) {
+                    $errorDetail .= ' -> Verifique se o Redirect URI e o Client Secret coincidem exatamente no Kommo, e gere um novo Código de Autorização.';
+                }
+                return ['success' => false, 'message' => $errorDetail];
             }
-            LogService::error('Falha na resposta do token Kommo', ['status' => $statusCode, 'data' => $data]);
-            return ['success' => false, 'message' => $errorMsg];
         }
 
         SettingsService::saveTokens(

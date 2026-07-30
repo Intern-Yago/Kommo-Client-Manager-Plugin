@@ -16,7 +16,7 @@ class SettingsService
             'subdomain'        => '',
             'client_id'        => '',
             'client_secret'    => '',
-            'redirect_uri'     => admin_url('admin.php?page=kcm-settings'),
+            'redirect_uri'     => set_url_scheme(admin_url('admin.php?page=kcm-settings'), 'https'),
             'access_token'     => '',
             'refresh_token'    => '',
             'token_expires'    => 0,
