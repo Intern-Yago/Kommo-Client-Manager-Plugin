@@ -1,9 +1,11 @@
 <?php
 /**
  * Plugin Name: Kommo Client Manager
+ * Plugin URI: https://intern-yago.github.io/Kommo-Client-Manager-Plugin/
  * Description: Integração entre Kommo CRM e WordPress.
  * Version: 1.1.0
  * Author: Yago
+ * Author URI: https://github.com/intern-yago
  * License: GPL-2.0-or-later
  * Text Domain: kommo-client-manager
  */
@@ -36,6 +38,15 @@ spl_autoload_register(function ($class) {
     if (file_exists($file)) {
         require_once $file;
     }
+});
+
+// Plugin Action Links in wp-admin/plugins.php
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), function ($links) {
+    $custom_links = [
+        '<a href="' . esc_url(admin_url('admin.php?page=kcm-settings')) . '">Configurações</a>',
+        '<a href="https://intern-yago.github.io/Kommo-Client-Manager-Plugin/" target="_blank" rel="noopener noreferrer">Documentação</a>',
+    ];
+    return array_merge($custom_links, $links);
 });
 
 // Activation & Deactivation Hooks
