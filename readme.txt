@@ -4,7 +4,7 @@ Tags: kommo, crm, amocrm, integration, sync, users
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,12 @@ O **Kommo Client Manager** permite conectar sua conta do Kommo CRM ao seu site W
 4. Acesse o menu Kommo Manager > Configurações para realizar a conexão inicial.
 
 == Changelog ==
+
+= 1.1.1 =
+* Correção do fluxo de envio das credenciais OAuth (auto-salvar credenciais ao conectar).
+* Suporte a fallback de requisição OAuth (JSON e x-www-form-urlencoded).
+* Forçar esquema HTTPS na URL de redirecionamento.
+* Logs avançados de diagnóstico em caso de falha de conexão.
 
 = 1.1.0 =
 * Adicionada nova página de documentação no GitHub Pages.

@@ -7,6 +7,14 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [1.1.1] - 2026-07-30
+
+### 🐛 Corrigido & Aprimorado
+- **Auto-salvamento de Credenciais**: Unificação do formulário de configurações permitindo que o subdomínio e chaves sejam salvos automaticamente ao clicar em "Conectar Conta Kommo".
+- **Fallback de Payload OAuth**: Suporte a envio duplo de requisições (`application/json` e `application/x-www-form-urlencoded`) no endpoint `/oauth2/access_token`.
+- **Validação de Scheme HTTPS**: Forçar esquema `https://` no parâmetro `redirect_uri` para evitar rejeições de esquema HTTP no Kommo.
+- **Logs Detalhados de Diagnóstico**: Registro do status e resposta bruta dos servidores do Kommo em caso de falhas de conexão.
+
 ## [1.1.0] - 2026-07-29
 
 ### 🚀 Adicionado
