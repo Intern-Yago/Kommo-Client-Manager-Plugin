@@ -21,49 +21,66 @@ class Settings
         $message = null;
         $messageType = 'updated';
 
-        // 1. Save general settings
-        if (isset($_POST['kcm_save_settings']) && check_admin_referer('kcm_save_settings_action', 'kcm_settings_nonce')) {
-            $newSettings = [
-                'subdomain'        => sanitize_text_field($_POST['subdomain'] ?? ''),
-                'client_id'        => sanitize_text_field($_POST['client_id'] ?? ''),
-                'client_secret'    => sanitize_text_field($_POST['client_secret'] ?? ''),
-                'redirect_uri'     => esc_url_raw($_POST['redirect_uri'] ?? ''),
-                'sync_cron'        => sanitize_text_field($_POST['sync_cron'] ?? 'hourly'),
-                'auto_create_user' => sanitize_text_field($_POST['auto_create_user'] ?? 'no'),
-            ];
+        // 1. Process Settings Save or OAuth Exchange
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $isSettingsAction = isset($_POST['kcm_save_settings']) || isset($_POST['kcm_exchange_code']);
+            $isNonceValid = (isset($_POST['kcm_settings_nonce']) && wp_verify_nonce($_POST['kcm_settings_nonce'], 'kcm_settings_action'))
+                         || (isset($_POST['kcm_settings_nonce']) && wp_verify_nonce($_POST['kcm_settings_nonce'], 'kcm_save_settings_action'))
+                         || (isset($_POST['kcm_code_nonce']) && wp_verify_nonce($_POST['kcm_code_nonce'], 'kcm_exchange_code_action'));
 
-            SettingsService::updateAll($newSettings);
-            $message = 'Configurações salvas com sucesso!';
-        }
+            if ($isSettingsAction && $isNonceValid) {
+                if (isset($_POST['subdomain'])) {
+                    $newSettings = [
+                        'subdomain'        => sanitize_text_field($_POST['subdomain'] ?? ''),
+                        'client_id'        => sanitize_text_field($_POST['client_id'] ?? ''),
+                        'client_secret'    => sanitize_text_field($_POST['client_secret'] ?? ''),
+                        'redirect_uri'     => esc_url_raw($_POST['redirect_uri'] ?? ''),
+                        'sync_cron'        => sanitize_text_field($_POST['sync_cron'] ?? 'hourly'),
+                        'auto_create_user' => sanitize_text_field($_POST['auto_create_user'] ?? 'no'),
+                    ];
 
-        // 2. Exchange Authorization Code for Access Token
-        if (isset($_POST['kcm_exchange_code']) && check_admin_referer('kcm_exchange_code_action', 'kcm_code_nonce')) {
-            $authCode = sanitize_text_field($_POST['auth_code'] ?? '');
-            if (!empty($authCode)) {
-                $api = new KommoApi();
-                $result = $api->exchangeAuthCode($authCode);
-                if ($result['success']) {
-                    $message = $result['message'];
+                    SettingsService::updateAll($newSettings);
+                }
+
+                if (isset($_POST['kcm_save_settings'])) {
+                    $message = 'Configurações salvas com sucesso!';
+                    $messageType = 'updated';
+                }
+
+                if (isset($_POST['kcm_exchange_code'])) {
+                    $authCode = sanitize_text_field($_POST['auth_code'] ?? '');
+                    $subdomain = SettingsService::get('subdomain');
+
+                    if (empty($subdomain)) {
+                        $message = 'Erro ao conectar: Subdomínio do Kommo não informado. Preencha o campo de subdomínio antes de conectar.';
+                        $messageType = 'error';
+                    } elseif (empty($authCode)) {
+                        $message = 'Por favor, insira o Código de Autorização fornecido pelo Kommo.';
+                        $messageType = 'error';
+                    } else {
+                        $api = new KommoApi();
+                        $result = $api->exchangeAuthCode($authCode);
+                        if ($result['success']) {
+                            $message = $result['message'];
+                            $messageType = 'updated';
+                        } else {
+                            $message = 'Erro ao conectar: ' . $result['message'];
+                            $messageType = 'error';
+                        }
+                    }
+                }
+            }
+
+            // 2. Test API Connection
+            if (isset($_POST['kcm_test_connection']) && check_admin_referer('kcm_test_conn_action', 'kcm_conn_nonce')) {
+                $testRes = KommoService::testConnection();
+                if ($testRes['success']) {
+                    $message = 'Conexão ativa com a conta: ' . esc_html($testRes['account_name']);
                     $messageType = 'updated';
                 } else {
-                    $message = 'Erro ao conectar: ' . $result['message'];
+                    $message = 'Falha na conexão: ' . esc_html($testRes['message']);
                     $messageType = 'error';
                 }
-            } else {
-                $message = 'Por favor, insira o Código de Autorização fornecido pelo Kommo.';
-                $messageType = 'error';
-            }
-        }
-
-        // 3. Test API Connection
-        if (isset($_POST['kcm_test_connection']) && check_admin_referer('kcm_test_conn_action', 'kcm_conn_nonce')) {
-            $testRes = KommoService::testConnection();
-            if ($testRes['success']) {
-                $message = 'Conexão ativa com a conta: ' . esc_html($testRes['account_name']);
-                $messageType = 'updated';
-            } else {
-                $message = 'Falha na conexão: ' . esc_html($testRes['message']);
-                $messageType = 'error';
             }
         }
 
@@ -86,11 +103,11 @@ class Settings
 
             <div class="kcm-grid" style="grid-template-columns: 2fr 1fr;">
                 <div>
-                    <div class="kcm-card" style="margin-bottom: 20px;">
-                        <h2>1. Credenciais da API Kommo</h2>
-                        <form method="post" action="">
-                            <?php wp_nonce_field('kcm_save_settings_action', 'kcm_settings_nonce'); ?>
-                            
+                    <form method="post" action="">
+                        <?php wp_nonce_field('kcm_settings_action', 'kcm_settings_nonce'); ?>
+                        
+                        <div class="kcm-card" style="margin-bottom: 20px;">
+                            <h2>1. Credenciais da API Kommo</h2>
                             <table class="form-table">
                                 <tr>
                                     <th scope="row"><label for="subdomain">Subdomínio do Kommo</label></th>
@@ -139,25 +156,24 @@ class Settings
                             <p class="submit">
                                 <button type="submit" name="kcm_save_settings" class="button button-primary button-large">Salvar Credenciais</button>
                             </p>
-                        </form>
-                    </div>
+                        </div>
 
-                    <div class="kcm-card">
-                        <h2>2. Autenticação OAuth (Código de Autorização)</h2>
-                        <p>Após salvar suas credenciais e definir o Redirect URI no Kommo, abra o link de autorização no Kommo, conceda as permissões e cole o <strong>Authorization Code</strong> gerado abaixo:</p>
+                        <div class="kcm-card">
+                            <h2>2. Autenticação OAuth (Código de Autorização)</h2>
+                            <p>Após preencher suas credenciais acima e definir o Redirect URI no Kommo, abra o link de autorização no Kommo, conceda as permissões e cole o <strong>Authorization Code</strong> gerado abaixo:</p>
 
-                        <form method="post" action="" style="margin-top: 15px;">
-                            <?php wp_nonce_field('kcm_exchange_code_action', 'kcm_code_nonce'); ?>
-                            <p>
-                                <input type="text" name="auth_code" class="large-text" placeholder="Cole o Código de Autorização do Kommo aqui...">
-                            </p>
-                            <p>
-                                <button type="submit" name="kcm_exchange_code" class="button button-secondary button-large">
-                                    <span class="dashicons dashicons-key" style="vertical-align: middle; margin-top: -2px;"></span> Conectar Conta Kommo
-                                </button>
-                            </p>
-                        </form>
-                    </div>
+                            <div style="margin-top: 15px;">
+                                <p>
+                                    <input type="text" name="auth_code" class="large-text" placeholder="Cole o Código de Autorização do Kommo aqui...">
+                                </p>
+                                <p>
+                                    <button type="submit" name="kcm_exchange_code" class="button button-secondary button-large">
+                                        <span class="dashicons dashicons-key" style="vertical-align: middle; margin-top: -2px;"></span> Conectar Conta Kommo
+                                    </button>
+                                </p>
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
                 <div>

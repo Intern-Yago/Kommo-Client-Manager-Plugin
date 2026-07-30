@@ -54,12 +54,14 @@ class SettingsService
             return '';
         }
 
-        if (strpos($subdomain, 'http://') === 0 || strpos($subdomain, 'https://') === 0) {
-            return rtrim($subdomain, '/');
+        $subdomain = rtrim($subdomain, '/');
+
+        if (preg_match('#^https?://#i', $subdomain)) {
+            return preg_replace('#^http://#i', 'https://', $subdomain);
         }
 
         if (strpos($subdomain, '.') !== false) {
-            return 'https://' . rtrim($subdomain, '/');
+            return 'https://' . $subdomain;
         }
 
         return 'https://' . $subdomain . '.kommo.com';
