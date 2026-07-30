@@ -24,9 +24,10 @@ class KommoApi
             return ['success' => false, 'message' => 'Subdomínio do Kommo não configurado.'];
         }
 
-        $clientId     = SettingsService::get('client_id');
-        $clientSecret = SettingsService::get('client_secret');
-        $redirectUri  = SettingsService::get('redirect_uri');
+        $clientId     = trim((string) SettingsService::get('client_id', ''));
+        $clientSecret = trim((string) SettingsService::get('client_secret', ''));
+        $redirectUri  = trim((string) SettingsService::get('redirect_uri', ''));
+        $code         = trim($code);
 
         $url = $this->baseUrl . '/oauth2/access_token';
 
@@ -55,6 +56,9 @@ class KommoApi
 
         if ($statusCode !== 200 || empty($data['access_token'])) {
             $errorMsg = $data['detail'] ?? $data['title'] ?? 'Falha na autenticação com Kommo.';
+            if (strpos($errorMsg, 'missing a required parameter') !== false || strpos($errorMsg, 'invalid parameter') !== false) {
+                $errorMsg .= ' -> O Código de Autorização expirou ou já foi utilizado. Gere um NOVO Código no painel do Kommo e confirme se o Redirect URI é exatamente idêntico.';
+            }
             LogService::error('Falha na resposta do token Kommo', ['status' => $statusCode, 'data' => $data]);
             return ['success' => false, 'message' => $errorMsg];
         }
