@@ -19,9 +19,11 @@ class SettingsService
             'redirect_uri'     => set_url_scheme(admin_url('admin.php?page=kcm-settings'), 'https'),
             'access_token'     => '',
             'refresh_token'    => '',
-            'token_expires'    => 0,
-            'sync_cron'        => 'hourly',
-            'auto_create_user' => 'no',
+            'token_expires'        => 0,
+            'sync_cron'            => 'hourly',
+            'auto_create_user'     => 'no',
+            'vip_area_url'         => '',
+            'vip_set_password_url' => '',
         ];
 
         $options = get_option(self::OPTION_NAME, []);

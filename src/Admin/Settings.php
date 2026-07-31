@@ -31,12 +31,14 @@ class Settings
             if ($isSettingsAction && $isNonceValid) {
                 if (isset($_POST['subdomain'])) {
                     $newSettings = [
-                        'subdomain'        => sanitize_text_field($_POST['subdomain'] ?? ''),
-                        'client_id'        => sanitize_text_field($_POST['client_id'] ?? ''),
-                        'client_secret'    => sanitize_text_field($_POST['client_secret'] ?? ''),
-                        'redirect_uri'     => esc_url_raw($_POST['redirect_uri'] ?? ''),
-                        'sync_cron'        => sanitize_text_field($_POST['sync_cron'] ?? 'hourly'),
-                        'auto_create_user' => sanitize_text_field($_POST['auto_create_user'] ?? 'no'),
+                        'subdomain'            => sanitize_text_field($_POST['subdomain'] ?? ''),
+                        'client_id'            => sanitize_text_field($_POST['client_id'] ?? ''),
+                        'client_secret'        => sanitize_text_field($_POST['client_secret'] ?? ''),
+                        'redirect_uri'         => esc_url_raw($_POST['redirect_uri'] ?? ''),
+                        'sync_cron'            => sanitize_text_field($_POST['sync_cron'] ?? 'hourly'),
+                        'auto_create_user'     => sanitize_text_field($_POST['auto_create_user'] ?? 'no'),
+                        'vip_area_url'         => esc_url_raw($_POST['vip_area_url'] ?? ''),
+                        'vip_set_password_url' => esc_url_raw($_POST['vip_set_password_url'] ?? ''),
                     ];
 
                     SettingsService::updateAll($newSettings);
@@ -152,14 +154,37 @@ class Settings
                                     </td>
                                 </tr>
                             </table>
+                        </div>
+
+                        <div class="kcm-card" style="margin-bottom: 20px;">
+                            <h2>2. Configurações da Área VIP</h2>
+                            <p>Configure abaixo os links e páginas da sua Área VIP para o redirecionamento de primeiro acesso dos clientes.</p>
+
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><label for="vip_area_url">URL da Página da Área VIP</label></th>
+                                    <td>
+                                        <input type="url" name="vip_area_url" id="vip_area_url" value="<?php echo esc_attr($settings['vip_area_url'] ?? ''); ?>" class="large-text" placeholder="<?php echo esc_attr(home_url('/area-vip/')); ?>">
+                                        <p class="description">Para onde o cliente será redirecionado imediatamente após criar a senha. Adicione o shortcode <code>[kcm_vip_area]Conteúdo VIP aqui...[/kcm_vip_area]</code> nesta página.</p>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th scope="row"><label for="vip_set_password_url">Página Customizada de Definição de Senha (Opcional)</label></th>
+                                    <td>
+                                        <input type="url" name="vip_set_password_url" id="vip_set_password_url" value="<?php echo esc_attr($settings['vip_set_password_url'] ?? ''); ?>" class="large-text" placeholder="<?php echo esc_attr(home_url('/definir-senha/')); ?>">
+                                        <p class="description">Deixe em branco para usar a página automática. Se quiser usar uma página criada no Elementor/Gutenberg, crie a página e adicione o shortcode <code>[kcm_set_password]</code> nela.</p>
+                                    </td>
+                                </tr>
+                            </table>
 
                             <p class="submit">
-                                <button type="submit" name="kcm_save_settings" class="button button-primary button-large">Salvar Credenciais</button>
+                                <button type="submit" name="kcm_save_settings" class="button button-primary button-large">Salvar Configurações</button>
                             </p>
                         </div>
 
                         <div class="kcm-card">
-                            <h2>2. Autenticação OAuth (Código de Autorização)</h2>
+                            <h2>3. Autenticação OAuth (Código de Autorização)</h2>
                             <p>Após preencher suas credenciais acima e definir o Redirect URI no Kommo, abra o link de autorização no Kommo, conceda as permissões e cole o <strong>Authorization Code</strong> gerado abaixo:</p>
 
                             <div style="margin-top: 15px;">

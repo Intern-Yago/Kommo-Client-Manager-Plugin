@@ -187,6 +187,12 @@ class Clients
                                         'kcm_delete_client_' . $client['id']
                                     );
                                     ?>
+                                    <?php if (!empty($client['email'])) : ?>
+                                        <button type="button" class="button button-small kcm-copy-vip-btn" data-client-id="<?php echo esc_attr($client['id']); ?>" style="margin-bottom: 4px; display: inline-flex; align-items: center; gap: 3px;" title="Copiar link de primeiro acesso para o cliente definir a senha">
+                                            <span class="dashicons dashicons-admin-links" style="font-size: 14px; width: 14px; height: 14px;"></span> Copiar Link VIP
+                                        </button>
+                                    <?php endif; ?>
+
                                     <a href="<?php echo esc_url($delete_url); ?>" class="button button-small button-link-delete" onclick="return confirm('Deseja realmente remover este cliente do BD local?');">
                                         Excluir
                                     </a>

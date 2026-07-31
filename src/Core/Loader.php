@@ -21,6 +21,9 @@ class Loader
         // Register REST API endpoints (Webhooks, etc.)
         add_action('rest_api_init', [self::class, 'registerRestRoutes']);
 
+        // Initialize VIP area & password activation handlers
+        \KCM\Services\VipService::init();
+
         // Register WP-Cron scheduled task for Sync
         add_action('kcm_scheduled_sync', [SyncService::class, 'runScheduledSync']);
     }

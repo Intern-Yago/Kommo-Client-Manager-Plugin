@@ -26,6 +26,7 @@ class Admin
         add_action('admin_menu', [$this, 'registerMenu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAssets']);
         add_action('admin_head', [$this, 'hideThirdPartyNotices'], 1);
+        add_action('wp_ajax_kcm_get_activation_link', [$this, 'ajaxGetActivationLink']);
     }
 
     public function handleEarlyActions(): void
@@ -128,5 +129,44 @@ class Admin
             KCM_VERSION,
             true
         );
+
+        wp_localize_script('kcm-admin-script', 'kcmAdmin', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('kcm_admin_ajax_nonce'),
+        ]);
+    }
+
+    public function ajaxGetActivationLink(): void
+    {
+        check_ajax_referer('kcm_admin_ajax_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permissão insuficiente.']);
+        }
+
+        $clientId = isset($_POST['client_id']) ? (int) $_POST['client_id'] : 0;
+        if (!$clientId) {
+            wp_send_json_error(['message' => 'ID do cliente inválido.']);
+        }
+
+        global $wpdb;
+        $table = \KCM\Database\Database::getClientsTableName();
+        $client = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d LIMIT 1", $clientId), ARRAY_A);
+
+        if (!$client) {
+            wp_send_json_error(['message' => 'Cliente não encontrado.']);
+        }
+
+        if (empty($client['email']) || !is_email($client['email'])) {
+            wp_send_json_error(['message' => 'Este cliente não possui um e-mail válido cadastrado.']);
+        }
+
+        $link = \KCM\Services\UserService::getActivationLinkForClient($client);
+
+        if ($link) {
+            wp_send_json_success(['link' => $link]);
+        } else {
+            wp_send_json_error(['message' => 'Não foi possível gerar o link de acesso.']);
+        }
     }
 }
