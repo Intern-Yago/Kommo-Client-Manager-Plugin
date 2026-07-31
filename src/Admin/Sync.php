@@ -2,8 +2,10 @@
 
 namespace KCM\Admin;
 
+use KCM\Models\Client;
 use KCM\Services\SyncService;
 use KCM\Services\SettingsService;
+use KCM\Services\LogService;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -18,9 +20,15 @@ class Sync
         }
 
         $syncResult = null;
+        $clearResult = null;
 
         if (isset($_POST['kcm_do_sync']) && check_admin_referer('kcm_manual_sync_nonce')) {
             $syncResult = SyncService::syncAllContacts();
+        }
+
+        if (isset($_POST['kcm_clear_all_clients']) && check_admin_referer('kcm_clear_clients_nonce')) {
+            $clearResult = Client::deleteAll();
+            LogService::warning("Base de dados local de clientes foi esvaziada através da página de Sincronização. Total de clientes removidos: {$clearResult}.");
         }
 
         $lastSyncTime  = get_option('kcm_last_sync_time', 'Nunca executada');
@@ -45,6 +53,12 @@ class Sync
                 </div>
             <?php endif; ?>
 
+            <?php if ($clearResult !== null) : ?>
+                <div class="notice notice-success is-dismissible kcm-notice">
+                    <p><strong>Base local esvaziada com sucesso!</strong> <?php echo esc_html($clearResult); ?> clientes foram removidos do banco de dados local do WordPress.</p>
+                </div>
+            <?php endif; ?>
+
             <div class="kcm-grid">
                 <div class="kcm-card">
                     <h2>Sincronização Manual</h2>
@@ -55,12 +69,21 @@ class Sync
                         <p><strong>Último Total Importado:</strong> <?php echo esc_html($lastSyncCount); ?> contatos</p>
                     </div>
 
-                    <form method="post">
-                        <?php wp_nonce_field('kcm_manual_sync_nonce'); ?>
-                        <button type="submit" name="kcm_do_sync" value="1" class="button button-primary button-large">
-                            <span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: -2px;"></span> Iniciar Sincronização Manual Agora
-                        </button>
-                    </form>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <form method="post">
+                            <?php wp_nonce_field('kcm_manual_sync_nonce'); ?>
+                            <button type="submit" name="kcm_do_sync" value="1" class="button button-primary button-large">
+                                <span class="dashicons dashicons-update" style="vertical-align: middle; margin-top: -2px;"></span> Iniciar Sincronização Manual Agora
+                            </button>
+                        </form>
+
+                        <form method="post" onsubmit="return confirm('ATENÇÃO: Deseja realmente apagar TODOS os clientes do banco de dados local do plugin?\n\nEsta ação limpa o banco de dados local do WordPress. NENHUM cliente será apagado do Kommo CRM.');">
+                            <?php wp_nonce_field('kcm_clear_clients_nonce'); ?>
+                            <button type="submit" name="kcm_clear_all_clients" value="1" class="button button-secondary button-large" style="color: #d63638; border-color: #d63638;">
+                                <span class="dashicons dashicons-trash" style="vertical-align: middle; margin-top: -2px;"></span> Apagar Base Local de Clientes
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="kcm-card">

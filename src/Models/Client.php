@@ -116,4 +116,24 @@ class Client
         $table = Database::getClientsTableName();
         return $wpdb->delete($table, ['id' => $id]) !== false;
     }
+
+    public static function deleteAll(): int
+    {
+        global $wpdb;
+        $table = Database::getClientsTableName();
+        $count = (int) $wpdb->get_var("SELECT COUNT(*) FROM $table");
+        $wpdb->query("DELETE FROM $table");
+        return $count;
+    }
+
+    public static function generateSyntheticKommoId(): int
+    {
+        global $wpdb;
+        $table = Database::getClientsTableName();
+        $maxKommoId = (int) $wpdb->get_var("SELECT MAX(kommo_id) FROM $table WHERE kommo_id >= 900000000");
+        if ($maxKommoId < 900000000) {
+            return 900000001;
+        }
+        return $maxKommoId + 1;
+    }
 }
