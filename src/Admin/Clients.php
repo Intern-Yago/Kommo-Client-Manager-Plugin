@@ -100,6 +100,15 @@ class Clients
                         <button type="submit" name="kcm_do_import" value="1" class="button button-primary">
                             Processar e Importar Planilha
                         </button>
+                        <?php
+                        $sample_url = wp_nonce_url(
+                            admin_url('admin.php?page=kcm-clients&action=download_sample'),
+                            'kcm_download_sample_nonce'
+                        );
+                        ?>
+                        <a href="<?php echo esc_url($sample_url); ?>" class="button button-secondary">
+                            <span class="dashicons dashicons-download" style="vertical-align: middle; margin-top: -2px;"></span> Baixar Planilha Modelo (.xlsx)
+                        </a>
                     </div>
 
                     <div style="margin-top: 10px;">

@@ -22,9 +22,21 @@ class Admin
         $this->logs      = new Logs();
         $this->settings  = new Settings();
 
+        add_action('admin_init', [$this, 'handleEarlyActions']);
         add_action('admin_menu', [$this, 'registerMenu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAssets']);
         add_action('admin_head', [$this, 'hideThirdPartyNotices'], 1);
+    }
+
+    public function handleEarlyActions(): void
+    {
+        if (isset($_GET['page']) && $_GET['page'] === 'kcm-clients' && isset($_GET['action']) && $_GET['action'] === 'download_sample') {
+            if (isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'kcm_download_sample_nonce')) {
+                if (current_user_can('manage_options')) {
+                    \KCM\Services\ImportService::outputSampleXlsx();
+                }
+            }
+        }
     }
 
     public function hideThirdPartyNotices(): void
