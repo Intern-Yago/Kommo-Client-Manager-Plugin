@@ -7,6 +7,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [1.3.0] - 2026-08-03
+
+### 🚀 Adicionado & Aprimorado
+- **Código de Verificação de 6 Dígitos via E-mail**: Sistema de segurança 2FA para primeiro acesso à Área VIP, impedindo que links encaminhados por engano ativem contas de terceiros.
+- **Formulário de Ativação VIP**: Interface responsiva para inserção do código de 6 dígitos, cadastro de nova senha e reenviar código.
+- **Link VIP no Painel Admin**: Geração manual e cópia de link de primeiro acesso por cliente.
+
 ## [1.1.1] - 2026-07-30
 
 ### 🐛 Corrigido & Aprimorado
