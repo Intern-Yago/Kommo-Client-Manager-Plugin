@@ -7,6 +7,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [1.3.1] - 2026-08-03
+
+### 🚀 Adicionado
+- **Cadastro Manual de Clientes**: Formulário na aba de Clientes do painel para adicionar novos clientes manualmente com criação/vinculação automática de usuário WordPress.
+
 ## [1.3.0] - 2026-08-03
 
 ### 🚀 Adicionado & Aprimorado

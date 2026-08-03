@@ -5,6 +5,7 @@ namespace KCM\Admin;
 use KCM\Models\Client;
 use KCM\Services\ImportService;
 use KCM\Services\LogService;
+use KCM\Services\UserService;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -16,6 +17,48 @@ class Clients
     {
         if (!current_user_can('manage_options')) {
             wp_die(__('Acesso negado. Permissão insuficiente.', 'kommo-client-manager'));
+        }
+
+        // Handle manual client addition
+        if (isset($_POST['kcm_add_manual_client']) && check_admin_referer('kcm_add_client_nonce')) {
+            $name    = sanitize_text_field($_POST['name'] ?? '');
+            $email   = sanitize_email($_POST['email'] ?? '');
+            $phone   = sanitize_text_field($_POST['phone'] ?? '');
+            $company = sanitize_text_field($_POST['company'] ?? '');
+            $createWpUser = !empty($_POST['create_wp_user']);
+
+            if (empty($name) || empty($email) || !is_email($email)) {
+                echo '<div class="notice notice-error is-dismissible kcm-notice"><p>Por favor, informe um nome válido e um e-mail correto para cadastrar o cliente.</p></div>';
+            } else {
+                $existing = Client::findByEmail($email);
+                $kommoId  = $existing ? (int) $existing['kommo_id'] : Client::generateSyntheticKommoId();
+
+                $wpUserId = $existing['wp_user_id'] ?? null;
+                if ($createWpUser && !$wpUserId) {
+                    $wpUserId = UserService::createOrMatchUser([
+                        'name'  => $name,
+                        'email' => $email,
+                        'phone' => $phone,
+                    ], true);
+                }
+
+                $clientId = Client::save([
+                    'kommo_id'   => $kommoId,
+                    'name'       => $name,
+                    'email'      => $email,
+                    'phone'      => $phone,
+                    'company'    => $company,
+                    'status'     => 'manual',
+                    'wp_user_id' => $wpUserId,
+                ]);
+
+                if ($clientId) {
+                    LogService::info("Cliente cadastrado manualmente no painel: {$name} ({$email})");
+                    echo '<div class="notice notice-success is-dismissible kcm-notice"><p><strong>Cliente cadastrado com sucesso!</strong> ' . esc_html($name) . ' foi adicionado à base local.</p></div>';
+                } else {
+                    echo '<div class="notice notice-error is-dismissible kcm-notice"><p>Erro ao salvar o cliente no banco de dados local.</p></div>';
+                }
+            }
         }
 
         // Handle single client deletion
@@ -69,8 +112,12 @@ class Clients
         <div class="wrap kcm-wrap">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                 <h1 class="wp-heading-inline" style="margin: 0;">Clientes Sincronizados (<?php echo esc_html($total_items); ?>)</h1>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button type="button" class="button button-primary button-large" id="kcm-toggle-import-btn" onclick="jQuery('#kcm-import-card').slideToggle(200);">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="button button-primary button-large" id="kcm-toggle-add-client-btn" onclick="jQuery('#kcm-add-client-card').slideToggle(200); jQuery('#kcm-import-card').hide();">
+                        <span class="dashicons dashicons-plus-alt2" style="vertical-align: middle; margin-top: -2px;"></span> Adicionar Cliente Manual
+                    </button>
+
+                    <button type="button" class="button button-secondary button-large" id="kcm-toggle-import-btn" onclick="jQuery('#kcm-import-card').slideToggle(200); jQuery('#kcm-add-client-card').hide();">
                         <span class="dashicons dashicons-upload" style="vertical-align: middle; margin-top: -2px;"></span> Importar Planilha (CSV / XLSX)
                     </button>
 
@@ -83,6 +130,53 @@ class Clients
                 </div>
             </div>
             <hr class="wp-header-end">
+
+            <!-- Manual Add Client Card -->
+            <div id="kcm-add-client-card" class="kcm-card" style="display: none; margin-bottom: 25px; border-left: 4px solid #2271b1; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <h2 style="margin-top: 0; font-size: 18px; color: #1d2327;">
+                    <span class="dashicons dashicons-plus-alt2" style="color: #2271b1; vertical-align: middle;"></span>
+                    Adicionar Novo Cliente Manualmente
+                </h2>
+                <p style="color: #646970; font-size: 13px; margin-bottom: 18px;">Preencha os dados do cliente para adicioná-lo à base local do plugin e permitir a geração do link VIP.</p>
+
+                <form method="post">
+                    <?php wp_nonce_field('kcm_add_client_nonce'); ?>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #1d2327;">Nome Completo: *</label>
+                            <input type="text" name="name" required placeholder="Ex: Yago Silva" style="width: 100%; padding: 8px 12px; border: 1px solid #c3c4c7; border-radius: 4px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #1d2327;">E-mail: *</label>
+                            <input type="email" name="email" required placeholder="Ex: cliente@dominio.com" style="width: 100%; padding: 8px 12px; border: 1px solid #c3c4c7; border-radius: 4px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #1d2327;">Telefone / WhatsApp:</label>
+                            <input type="text" name="phone" placeholder="Ex: (11) 99999-9999" style="width: 100%; padding: 8px 12px; border: 1px solid #c3c4c7; border-radius: 4px;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #1d2327;">Empresa / Projeto:</label>
+                            <input type="text" name="company" placeholder="Ex: Minha Empresa" style="width: 100%; padding: 8px 12px; border: 1px solid #c3c4c7; border-radius: 4px;" />
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 18px;">
+                        <label style="font-weight: 500; font-size: 13px; color: #2c3338;">
+                            <input type="checkbox" name="create_wp_user" value="1" checked />
+                            Criar/Vincular usuário no WordPress automaticamente para permitir acesso VIP
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button type="submit" name="kcm_add_manual_client" value="1" class="button button-primary button-large">
+                            Salvar Cliente
+                        </button>
+                        <button type="button" class="button button-secondary button-large" onclick="jQuery('#kcm-add-client-card').slideUp(200);">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
 
             <!-- Import Card (Hidden by default, toggled via button or displayed if imported) -->
             <div id="kcm-import-card" class="kcm-card" style="display: none; margin-bottom: 25px; border-left: 4px solid #2271b1; background: #f6f7f7;">
