@@ -2,6 +2,8 @@ name: Release Plugin
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -24,6 +26,20 @@ jobs:
           php-version: '8.1'
           tools: composer
 
+      - name: Extract Plugin Version
+        id: get_version
+        run: |
+          VERSION=$(grep -i "Version:" kommo-client-manager.php | head -n 1 | awk -F':' '{print $2}' | tr -d ' \r\n')
+          if [ -z "$VERSION" ]; then
+            VERSION="1.0.0"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=v$VERSION" >> $GITHUB_ENV
+          fi
+
       - name: Install Composer Dependencies
         run: |
           if [ -f "composer.json" ]; then
@@ -40,6 +56,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
           files: kommo-client-manager.zip
           draft: false
           prerelease: false
@@ -47,4 +65,5 @@ jobs:
           overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
