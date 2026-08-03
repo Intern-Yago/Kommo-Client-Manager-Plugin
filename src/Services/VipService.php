@@ -12,6 +12,7 @@ class VipService
     {
         add_shortcode('kcm_set_password', [self::class, 'renderSetPasswordShortcode']);
         add_shortcode('kcm_vip_area', [self::class, 'renderVipAreaShortcode']);
+        add_shortcode('kcm_vip_button', [self::class, 'renderVipButtonShortcode']);
         add_action('init', [self::class, 'handlePasswordSubmission']);
         add_action('template_redirect', [self::class, 'interceptSetPasswordPage']);
     }
@@ -261,5 +262,38 @@ class VipService
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    public static function renderVipButtonShortcode($atts = []): string
+    {
+        $atts = shortcode_atts([
+            'login_text'  => 'Entrar na Área VIP',
+            'member_text' => 'Minha Área VIP',
+            'style'       => 'primary',
+        ], $atts, 'kcm_vip_button');
+
+        $vipUrl = SettingsService::get('vip_area_url', home_url('/'));
+        $isLoggedIn = is_user_logged_in();
+
+        $text = $isLoggedIn ? $atts['member_text'] : $atts['login_text'];
+        $icon = $isLoggedIn ? '👑' : '🔒';
+
+        $btnStyle = 'display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s ease; cursor: pointer;';
+
+        if ($atts['style'] === 'outline') {
+            $btnStyle .= ' background: transparent; color: #2563eb; border: 2px solid #2563eb;';
+        } elseif ($atts['style'] === 'link') {
+            $btnStyle .= ' background: transparent; color: #2563eb; border: none; padding: 0;';
+        } else {
+            $btnStyle .= ' background: #2563eb; color: #ffffff; border: none; box-shadow: 0 4px 10px rgba(37,99,235,0.2);';
+        }
+
+        return sprintf(
+            '<a href="%s" class="kcm-vip-header-btn" style="%s"><span>%s</span> %s</a>',
+            esc_url($vipUrl),
+            esc_attr($btnStyle),
+            $icon,
+            esc_html($text)
+        );
     }
 }

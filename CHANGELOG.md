@@ -7,6 +7,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [1.4.0] - 2026-08-03
+
+### 🚀 Adicionado
+- **Shortcode de Botão Header `[kcm_vip_button]`**: Botão dinâmico e estilisado para o cabeçalho/menu que alterna o texto ("Entrar na Área VIP" / "Minha Área VIP") conforme o status de login do cliente.
+
 ## [1.3.2] - 2026-08-03
 
 ### 🚀 Adicionado

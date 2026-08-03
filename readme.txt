@@ -4,7 +4,7 @@ Tags: kommo, crm, amocrm, integration, sync, users
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.1
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,6 +22,9 @@ O **Kommo Client Manager** permite conectar sua conta do Kommo CRM ao seu site W
 4. Acesse o menu Kommo Manager > Configurações para realizar a conexão inicial.
 
 == Changelog ==
+
+= 1.4.0 =
+* Novo shortcode `[kcm_vip_button]` para exibir botão dinâmico da Área VIP no cabeçalho ou menus do site.
 
 = 1.3.2 =
 * Botão rápido "Cadastrar E-mail" para clientes que foram sincronizados sem e-mail, liberando a geração do Link VIP.
