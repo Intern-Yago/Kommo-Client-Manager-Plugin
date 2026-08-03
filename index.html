@@ -174,16 +174,21 @@
     <section id="oauth-section" class="scroll-mt-24">
       <div class="max-w-4xl mx-auto">
         
-        <!-- Detected Code Box (Hidden by default, shown if ?code= is present) -->
+        <!-- Detected Code Box (Hidden by default, shown if ?code= is present or simulated) -->
         <div id="oauth-detected-box" class="hidden light-card rounded-2xl p-6 sm:p-8 border-2 border-kommo-500 bg-white">
-          <div class="flex items-center gap-3 text-emerald-600 font-bold text-sm uppercase tracking-wider mb-3">
-            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-            Código de Autorização OAuth Recebido com Sucesso!
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <div class="flex items-center gap-3 text-emerald-600 font-bold text-sm uppercase tracking-wider">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              Código de Autorização OAuth Capturado com Sucesso!
+            </div>
+            <button onclick="resetOAuthHub()" class="text-xs text-slate-500 hover:text-slate-800 underline font-medium transition-colors">
+              Voltar ao modo de espera
+            </button>
           </div>
 
           <h3 class="text-2xl font-extrabold text-slate-900 mb-2">Copie o Código Abaixo para o WordPress:</h3>
           <p class="text-slate-600 text-sm mb-6">
-            Cole este código no formulário de conexão em <strong>WordPress > Kommo Manager > Configurações</strong> para concluir a autenticação.
+            Cole este código no formulário em <strong>WordPress > Kommo Manager > Configurações</strong> para concluir a autenticação.
           </p>
 
           <div class="bg-slate-900 text-white rounded-xl p-4 sm:p-5 font-mono text-sm sm:text-base break-all mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-inner">
@@ -201,24 +206,35 @@
         </div>
 
         <!-- Standby Box (Shown when no code in URL) -->
-        <div id="oauth-standby-box" class="light-card rounded-2xl p-6 sm:p-8 bg-white text-center space-y-4">
+        <div id="oauth-standby-box" class="light-card rounded-2xl p-6 sm:p-8 bg-white text-center space-y-5">
           <div class="w-14 h-14 mx-auto rounded-full bg-blue-50 text-kommo-500 flex items-center justify-center">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
             </svg>
           </div>
 
-          <h3 class="text-xl font-bold text-slate-900">Hub de Redirecionamento OAuth Privado</h3>
-          <p class="text-slate-600 text-sm max-w-xl mx-auto leading-relaxed">
-            Esta página é utilizada como a <strong>Redirect URI oficial</strong> para autorização de integrações privadas no Kommo CRM.
-            Quando você autorizar a integração na Kommo, o código temporário aparecerá automaticamente nesta tela.
-          </p>
+          <div class="space-y-2">
+            <h3 class="text-xl font-bold text-slate-900">Hub de Redirecionamento OAuth Privado</h3>
+            <p class="text-slate-600 text-sm max-w-xl mx-auto leading-relaxed">
+              Esta página é a <strong>Redirect URI oficial</strong> para a autenticação privada do Kommo CRM.
+              Ao autorizar o aplicativo no Kommo, o código temporário é exibido automaticamente nesta caixa para cópia rápida.
+            </p>
+          </div>
 
-          <div class="pt-2">
-            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono font-medium border border-slate-200">
+          <div class="pt-2 flex flex-col items-center gap-3">
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono font-semibold border border-slate-200">
               <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              Status do Hub: Ativo e Prontinho para receber conexões
+              Status do Hub: Operacional e pronto para autenticação
             </span>
+
+            <!-- Interactive Test Connection Button -->
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 w-full">
+              <button onclick="simulateOAuthTest()" class="px-5 py-2.5 rounded-xl bg-kommo-500 hover:bg-kommo-600 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-kommo-500/20 flex items-center gap-2 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Simular Teste de Conexão OAuth
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-400">Clique para testar o funcionamento do leitor de código em tempo real.</p>
           </div>
         </div>
 
@@ -455,7 +471,7 @@
     </div>
   </footer>
 
-  <!-- Script for URL Parsing and Copying -->
+  <!-- Script for URL Parsing, Simulation and Copying -->
   <script>
     // Extract query parameters from URL
     function getQueryParams() {
@@ -491,15 +507,41 @@
       }
     });
 
+    // Simulate OAuth Test Code Generation
+    function simulateOAuthTest() {
+      const sampleCode = 'def_sample_oauth_code_' + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+      const detectedBox = document.getElementById('oauth-detected-box');
+      const standbyBox = document.getElementById('oauth-standby-box');
+      
+      document.getElementById('code-display').innerText = sampleCode;
+      document.getElementById('referer-display').innerText = 'suaconta.kommo.com (Modo Demonstração)';
+      document.getElementById('client-id-display').innerText = '12345678-demo-client-id';
+      
+      detectedBox.classList.remove('hidden');
+      standbyBox.classList.add('hidden');
+      
+      showToast('Simulação ativada! Código OAuth capturado para teste.');
+      
+      setTimeout(() => {
+        detectedBox.scrollIntoView({ behavior: 'smooth' });
+      }, 200);
+    }
+
+    // Reset Hub back to Standby
+    function resetOAuthHub() {
+      const detectedBox = document.getElementById('oauth-detected-box');
+      const standbyBox = document.getElementById('oauth-standby-box');
+      detectedBox.classList.add('hidden');
+      standbyBox.classList.remove('hidden');
+      if (window.history && window.history.pushState) {
+        window.history.pushState({}, document.title, window.location.pathname);
+      }
+    }
+
     // Copy OAuth code
     function copyOAuthCode() {
-      const params = getQueryParams();
-      if (params.code) {
-        copyToClipboard(params.code, 'Código de Autorização copiado para a área de transferência!');
-      } else {
-        const text = document.getElementById('code-display').innerText;
-        copyToClipboard(text, 'Copiado para a área de transferência!');
-      }
+      const text = document.getElementById('code-display').innerText;
+      copyToClipboard(text, 'Código de Autorização copiado para a área de transferência!');
     }
 
     // Generic copy to clipboard function
@@ -507,7 +549,6 @@
       navigator.clipboard.writeText(text).then(() => {
         showToast(customMessage || 'Copiado com sucesso!');
       }).catch(err => {
-        // Fallback for older browsers
         const textarea = document.createElement('textarea');
         textarea.value = text;
         document.body.appendChild(textarea);
