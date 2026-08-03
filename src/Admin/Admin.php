@@ -27,6 +27,7 @@ class Admin
         add_action('admin_enqueue_scripts', [$this, 'enqueueAssets']);
         add_action('admin_head', [$this, 'hideThirdPartyNotices'], 1);
         add_action('wp_ajax_kcm_get_activation_link', [$this, 'ajaxGetActivationLink']);
+        add_action('wp_ajax_kcm_save_client_email', [$this, 'ajaxSaveClientEmail']);
     }
 
     public function handleEarlyActions(): void
@@ -168,5 +169,52 @@ class Admin
         } else {
             wp_send_json_error(['message' => 'Não foi possível gerar o link de acesso.']);
         }
+    }
+
+    public function ajaxSaveClientEmail(): void
+    {
+        check_ajax_referer('kcm_admin_ajax_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permissão insuficiente.']);
+        }
+
+        $clientId = isset($_POST['client_id']) ? (int) $_POST['client_id'] : 0;
+        $email    = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+
+        if (!$clientId) {
+            wp_send_json_error(['message' => 'ID do cliente inválido.']);
+        }
+
+        if (empty($email) || !is_email($email)) {
+            wp_send_json_error(['message' => 'Por favor, informe um e-mail válido.']);
+        }
+
+        global $wpdb;
+        $table = \KCM\Database\Database::getClientsTableName();
+        $client = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d LIMIT 1", $clientId), ARRAY_A);
+
+        if (!$client) {
+            wp_send_json_error(['message' => 'Cliente não encontrado.']);
+        }
+
+        // Create or match WP User if needed
+        $wpUserId = $client['wp_user_id'] ? (int) $client['wp_user_id'] : null;
+        if (!$wpUserId) {
+            $wpUserId = \KCM\Services\UserService::createOrMatchUser([
+                'name'  => $client['name'],
+                'email' => $email,
+                'phone' => $client['phone'],
+            ], true);
+        }
+
+        $client['email'] = $email;
+        $client['wp_user_id'] = $wpUserId;
+
+        \KCM\Models\Client::save($client);
+
+        wp_send_json_success([
+            'message' => 'E-mail cadastrado e usuário WP vinculado com sucesso!',
+        ]);
     }
 }

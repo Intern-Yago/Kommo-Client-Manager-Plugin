@@ -7,6 +7,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## [1.3.2] - 2026-08-03
+
+### 🚀 Adicionado
+- **Cadastro Rápido de E-mail**: Botão "Cadastrar E-mail" na tabela de clientes para atualizar registros sem e-mail vindos do Kommo CRM, permitindo gerar o Link VIP imediatamente.
+
 ## [1.3.1] - 2026-08-03
 
 ### 🚀 Adicionado

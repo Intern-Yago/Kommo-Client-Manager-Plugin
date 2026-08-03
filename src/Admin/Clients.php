@@ -285,6 +285,10 @@ class Clients
                                         <button type="button" class="button button-small kcm-copy-vip-btn" data-client-id="<?php echo esc_attr($client['id']); ?>" style="margin-bottom: 4px; display: inline-flex; align-items: center; gap: 3px;" title="Copiar link de primeiro acesso para o cliente definir a senha">
                                             <span class="dashicons dashicons-admin-links" style="font-size: 14px; width: 14px; height: 14px;"></span> Copiar Link VIP
                                         </button>
+                                    <?php else : ?>
+                                        <button type="button" class="button button-small kcm-edit-email-btn" data-client-id="<?php echo esc_attr($client['id']); ?>" data-client-name="<?php echo esc_attr($client['name']); ?>" style="margin-bottom: 4px; display: inline-flex; align-items: center; gap: 3px; background: #f6f7f7; color: #2271b1; border-color: #2271b1;" title="Cadastrar e-mail para poder gerar o Link VIP">
+                                            <span class="dashicons dashicons-email-alt" style="font-size: 14px; width: 14px; height: 14px;"></span> Cadastrar E-mail
+                                        </button>
                                     <?php endif; ?>
 
                                     <a href="<?php echo esc_url($delete_url); ?>" class="button button-small button-link-delete" onclick="return confirm('Deseja realmente remover este cliente do BD local?');">

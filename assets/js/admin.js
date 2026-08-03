@@ -56,5 +56,43 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    // Add or edit email for client to allow VIP link generation
+    $(document).on('click', '.kcm-edit-email-btn', function(e) {
+        e.preventDefault();
+        var $btn = $(this);
+        var clientId = $btn.data('client-id');
+        var clientName = $btn.data('client-name') || 'Cliente';
+
+        var email = prompt('Digite o e-mail de "' + clientName + '" para poder gerar o Link VIP:');
+        if (!email) return;
+
+        var originalHtml = $btn.html();
+        $btn.prop('disabled', true).text('Salvando...');
+
+        $.ajax({
+            url: kcmAdmin.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'kcm_save_client_email',
+                nonce: kcmAdmin.nonce,
+                client_id: clientId,
+                email: email
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.data.message || 'E-mail cadastrado com sucesso!');
+                    location.reload();
+                } else {
+                    alert('Erro ao salvar e-mail: ' + (response.data.message || 'Erro desconhecido.'));
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            },
+            error: function() {
+                alert('Erro de conexão ao salvar e-mail.');
+                $btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
 });
 
