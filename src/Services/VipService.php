@@ -18,6 +18,27 @@ class VipService
 
     public static function handlePasswordSubmission(): void
     {
+        // Handle Resend Code action
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kcm_action_resend_code'])) {
+            if (isset($_POST['kcm_set_pwd_nonce']) && wp_verify_nonce($_POST['kcm_set_pwd_nonce'], 'kcm_set_password_action')) {
+                $userId = isset($_POST['uid']) ? (int) $_POST['uid'] : 0;
+                $token  = isset($_POST['kcm_token']) ? sanitize_text_field($_POST['kcm_token']) : '';
+
+                if ($userId && $token && UserService::validateActivationToken($userId, $token)) {
+                    UserService::sendVerificationCode($userId);
+                    $redirectUrl = add_query_arg([
+                        'kcm_action' => 'set_password',
+                        'kcm_token'  => $token,
+                        'uid'        => $userId,
+                        'kcm_resent' => '1',
+                    ], home_url('/'));
+
+                    wp_safe_redirect($redirectUrl);
+                    exit;
+                }
+            }
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['kcm_action_set_password'])) {
             return;
         }
@@ -28,11 +49,17 @@ class VipService
 
         $userId   = isset($_POST['uid']) ? (int) $_POST['uid'] : 0;
         $token    = isset($_POST['kcm_token']) ? sanitize_text_field($_POST['kcm_token']) : '';
+        $code     = isset($_POST['kcm_code']) ? sanitize_text_field($_POST['kcm_code']) : '';
         $pass1    = isset($_POST['pass1']) ? $_POST['pass1'] : '';
         $pass2    = isset($_POST['pass2']) ? $_POST['pass2'] : '';
 
         if (!$userId || !$token || !UserService::validateActivationToken($userId, $token)) {
             wp_die(__('Este link de primeiro acesso é inválido ou expirou. Solicite um novo link.', 'kommo-client-manager'));
+        }
+
+        // Validate 6-digit verification code
+        if (empty($code) || !UserService::validateVerificationCode($userId, $code)) {
+            wp_die(__('O código de 6 dígitos informado é inválido ou expirou. Por favor, verifique seu e-mail e tente novamente.', 'kommo-client-manager'));
         }
 
         if (empty($pass1) || strlen($pass1) < 6) {
@@ -91,6 +118,21 @@ class VipService
         return self::renderSetPasswordHtml($userId, $token);
     }
 
+    private static function maskEmail(string $email): string
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $email;
+        }
+        list($first, $last) = explode('@', $email);
+        $len = strlen($first);
+        if ($len <= 2) {
+            $maskedFirst = substr($first, 0, 1) . '*';
+        } else {
+            $maskedFirst = substr($first, 0, 1) . str_repeat('*', min($len - 2, 5)) . substr($first, -1);
+        }
+        return $maskedFirst . '@' . $last;
+    }
+
     public static function renderSetPasswordHtml(int $userId, string $token): string
     {
         $isValid = UserService::validateActivationToken($userId, $token);
@@ -104,6 +146,15 @@ class VipService
                 . '</div>';
         }
 
+        // Send verification code automatically on first load if missing or expired
+        $expires = (int) get_user_meta($userId, '_kcm_code_expires', true);
+        if (empty($expires) || time() > $expires) {
+            UserService::sendVerificationCode($userId);
+        }
+
+        $maskedEmail = self::maskEmail($user->user_email);
+        $resentMsg   = isset($_GET['kcm_resent']) && $_GET['kcm_resent'] === '1';
+
         ob_start();
         ?>
         <div class="kcm-set-password-card" style="max-width: 460px; margin: 40px auto; padding: 30px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.06);">
@@ -113,10 +164,21 @@ class VipService
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 002-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
                 </div>
-                <h2 style="margin: 0 0 8px 0; color: #1e293b; font-size: 22px; font-weight: 700;">Bem-vindo(a) à Área VIP!</h2>
+                <h2 style="margin: 0 0 8px 0; color: #1e293b; font-size: 22px; font-weight: 700;">Ativação de Conta VIP</h2>
                 <p style="margin: 0; color: #64748b; font-size: 14px;">
-                    Olá, <strong><?php echo esc_html($user->first_name ?: $user->display_name); ?></strong> (<?php echo esc_html($user->user_email); ?>). Crie sua senha de acesso abaixo:
+                    Olá, <strong><?php echo esc_html($user->first_name ?: $user->display_name); ?></strong>!
                 </p>
+            </div>
+
+            <?php if ($resentMsg) : ?>
+                <div style="margin-bottom: 16px; padding: 12px 14px; background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 8px; font-size: 13px; text-align: center;">
+                    ✓ Novo código de 6 dígitos enviado para seu e-mail!
+                </div>
+            <?php endif; ?>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 20px; font-size: 13px; color: #475569; line-height: 1.5; text-align: center;">
+                📩 Enviamos um <strong>código de 6 dígitos</strong> para o seu e-mail: <br><strong style="color: #1e293b;"><?php echo esc_html($maskedEmail); ?></strong>.<br>
+                Insira o código abaixo para confirmar sua identidade e cadastrar sua senha.
             </div>
 
             <form method="post" action="" style="display: flex; flex-direction: column; gap: 16px;">
@@ -124,6 +186,11 @@ class VipService
                 <input type="hidden" name="kcm_action_set_password" value="1">
                 <input type="hidden" name="uid" value="<?php echo esc_attr($userId); ?>">
                 <input type="hidden" name="kcm_token" value="<?php echo esc_attr($token); ?>">
+
+                <div>
+                    <label for="kcm_code" style="display: block; font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px;">Código de Verificação (6 dígitos):</label>
+                    <input type="text" name="kcm_code" id="kcm_code" required maxlength="6" pattern="[0-9]{6}" placeholder="000000" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 20px; font-family: monospace, Courier, monospace; letter-spacing: 4px; text-align: center; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#2563eb';" onblur="this.style.borderColor='#cbd5e1';">
+                </div>
 
                 <div>
                     <label for="kcm_pass1" style="display: block; font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px;">Nova Senha:</label>
@@ -135,8 +202,18 @@ class VipService
                     <input type="password" name="pass2" id="kcm_pass2" required minlength="6" placeholder="Digite a senha novamente" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#2563eb';" onblur="this.style.borderColor='#cbd5e1';">
                 </div>
 
-                <button type="submit" style="width: 100%; padding: 12px 20px; background: #2563eb; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; transition: background-color 0.2s; margin-top: 8px;" onmouseover="this.style.background='#1d4ed8';" onmouseout="this.style.background='#2563eb';">
-                    Cadastrar Senha e Entrar na Área VIP
+                <button type="submit" style="width: 100%; padding: 12px 20px; background: #2563eb; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; transition: background-color 0.2s; margin-top: 4px;" onmouseover="this.style.background='#1d4ed8';" onmouseout="this.style.background='#2563eb';">
+                    Validar Código e Entrar na Área VIP
+                </button>
+            </form>
+
+            <form method="post" action="" style="margin-top: 15px; text-align: center;">
+                <?php wp_nonce_field('kcm_set_password_action', 'kcm_set_pwd_nonce'); ?>
+                <input type="hidden" name="kcm_action_resend_code" value="1">
+                <input type="hidden" name="uid" value="<?php echo esc_attr($userId); ?>">
+                <input type="hidden" name="kcm_token" value="<?php echo esc_attr($token); ?>">
+                <button type="submit" style="background: none; border: none; color: #64748b; font-size: 13px; text-decoration: underline; cursor: pointer;" onmouseover="this.style.color='#2563eb';" onmouseout="this.style.color='#64748b';">
+                    Não recebeu o e-mail? Clique para reenviar o código
                 </button>
             </form>
         </div>

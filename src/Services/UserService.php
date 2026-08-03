@@ -117,9 +117,11 @@ class UserService
 
         wp_set_password($newPassword, $userId);
 
-        // Delete activation token metadata
+        // Delete activation token & verification code metadata
         delete_user_meta($userId, '_kcm_activation_token');
         delete_user_meta($userId, '_kcm_activation_expires');
+        delete_user_meta($userId, '_kcm_verification_code');
+        delete_user_meta($userId, '_kcm_code_expires');
 
         // Flag user as VIP password set
         update_user_meta($userId, '_kcm_vip_active', 1);
@@ -128,6 +130,42 @@ class UserService
         LogService::info('Senha definida com sucesso pelo cliente', ['user_id' => $userId]);
 
         return true;
+    }
+
+    public static function sendVerificationCode(int $userId): bool
+    {
+        $user = get_userdata($userId);
+        if (!$user || empty($user->user_email)) {
+            return false;
+        }
+
+        $code = sprintf('%06d', wp_rand(100000, 999999));
+        
+        update_user_meta($userId, '_kcm_verification_code', wp_hash_password($code));
+        update_user_meta($userId, '_kcm_code_expires', time() + (15 * MINUTE_IN_SECONDS));
+
+        return EmailService::sendVerificationCode($user->user_email, $user->first_name ?: $user->display_name, $code);
+    }
+
+    public static function validateVerificationCode(int $userId, string $code): bool
+    {
+        $code = trim($code);
+        if (empty($code) || $userId <= 0) {
+            return false;
+        }
+
+        $hashedCode = get_user_meta($userId, '_kcm_verification_code', true);
+        $expires    = (int) get_user_meta($userId, '_kcm_code_expires', true);
+
+        if (empty($hashedCode) || empty($expires)) {
+            return false;
+        }
+
+        if (time() > $expires) {
+            return false;
+        }
+
+        return wp_check_password($code, $hashedCode);
     }
 
     public static function getActivationLinkForClient(array $client): ?string
